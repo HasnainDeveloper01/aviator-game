@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Aviator Game — High Stakes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0c15;
+      --card: #12152a;
+      --accent: #ffd700;
+      --accent-dark: #e6c300;
+      --muted: #6b7280;
+      --green: #10b981;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --text: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --border: rgba(255,255,255,0.08);
+    }
+    
+    * {
+      box-sizing: border-box;
+      font-family: 'Kanit', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      margin: 0;
+      background: radial-gradient(circle at center, #0a1020 0%, #050913 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+    
+    .wrap {
+      width: 100%;
+      max-width: 1200px;
+      background: rgba(10, 14, 39, 0.8);
+      border-radius: 16px;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 20px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(5px);
+      border: 1px solid var(--border);
+    }
+    
+    .game-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: inset 0 0 0 1px var(--border);
+    }
+    
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .multiplier {
+      font-size: 52px;
+      font-weight: 700;
+      color: var(--accent);
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+      letter-spacing: 1px;
+      line-height: 1;
+    }
+    
+    .crash-point {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    
+    canvas {
+      background: linear-gradient(180deg, #0a1428, #070e1f);
+      border-radius: 12px;
+      width: 100%;
+      height: 380px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    
+    input[type=number] {
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: none;
+      width: 160px;
+      font-size: 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    
+    input[type=number]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+    }
+    
+    button {
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: none;
+      background: var(--accent);
+      color: #111827;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    button:hover {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .btn-danger {
+      background: var(--red);
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+    
+    .side {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .panel {
+      background: var(--card);
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: inset 0 0 0 1px var(--border);
+    }
+    
+    .panel strong {
+      font-size: 18px;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 12px;
+      color: var(--text);
+      letter-spacing: 0.5px;
+    }
+    
+    .small {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .players {
+      max-height: 220px;
+      overflow: auto;
+    }
+    
+    .player {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+    
+    .player:last-child {
+      border-bottom: none;
+    }
+    
+    .status-win {
+      color: var(--green);
+      font-weight: 500;
+    }
+    
+    .status-lose {
+      color: var(--red);
+      font-weight: 500;
+    }
+    
+    .center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    footer {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 12px;
+      opacity: 0.7;
+    }
+    
+    .login {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .login input {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.3);
+      color: var(--text);
+      font-size: 14px;
+    }
+    
+    .login input::placeholder {
+      color: var(--muted);
+    }
+    
+    .hidden {
+      display: none;
+    }
+    /* Full screen wrapper with blur behind login */
+#loginWrapper {
+  position: fixed;
+  inset: 0; /* shorthand for top:0; right:0; bottom:0; left:0; */
+  width: 100vw;
+  height: 150vh;
+  backdrop-filter: blur(10px);
+  background-color: rgba(10, 14, 39, 0.8); /* semi-transparent dark */
+  
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+/* Hide logout by default */
+#logoutSection.hidden {
+  display: none !important;
+}
+
+/* Login section displayed by default */
+#loginSection {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Login form container styling */
+.login {
+  background: rgba(18, 21, 42, 0.85);
+  padding: 30px 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 320px;
+}
+
+/* Inputs styling */
+.login input {
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  color: #f3f4f6;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.login input::placeholder {
+  color: rgba(156, 163, 175, 0.7); /* lighter placeholder */
+}
+
+.login input:focus {
+  border-color: #ffd700;
+}
+
+/* Login button style */
+.login button {
+  background-color: #ffd700;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: #111827;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.login button:hover {
+  background-color: #e6c300;
+}
+
+/* Hide logout section initially */
+#logoutSection.hidden {
+  display: none;
+}
+/* Login Wrapper default for login overlay */
+#loginWrapper.login-overlay {
+  position: fixed;
+  inset: 0; /* top:0; right:0; bottom:0; left:0; */
+  width: 100vw;
+  height: 120vh;
+  backdrop-filter: blur(10px);
+  background-color: rgba(10, 14, 39, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Login wrapper state when token exists */
+#loginWrapper.logged-in {
+  position: relative;
+  bottom: 20px;
+  right: 20px;
+  width: auto;
+  height: auto;
+  backdrop-filter: none;
+  background-color: transparent;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Hide logout by default */
+#logoutSection.hidden {
+  display: none !important;
+}
+
+/* Login section default */
+#loginSection {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Logout section default */
+#logoutSection {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Animation for multiplier */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .pulse {
+      animation: pulse 1s infinite;
+    }
+    
+    /* Glow effect for important elements */
+    .glow {
+      text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 900px) {
+      .wrap {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="game-card">
+      <div class="top-row">
+        <div>
+          <div class="multiplier glow" id="multiplier">1.00x</div>
+          <!-- <div class="crash-point small">Crash point: <span id="crashPoint">—</span></div> -->
+        </div>
+        <div class="small">
+          <div id="balance">Balance: —</div>
+          <div id="countdown" class="small">Waiting for bets</div>
+        </div>
+      </div>
+
+      <canvas id="stage" width="800" height="380"></canvas>
+
+      <div class="controls">
+        <div style="display:flex;gap:12px;align-items:center">
+          <input type="number" id="betInput" placeholder="Bet amount" min="1" />
+          <button id="placeBetBtn">Bet</button>
+          <button id="cashoutBtn" class="btn-danger" disabled>Cashout</button>
+        </div>
+
+       <div id="loginWrapper" style="display: flex; gap:12px; align-items: center; margin-left: auto;">
+  <div id="loginSection" class="login" style="display: flex; gap: 8px;">
+    <input id="loginUser" placeholder="Username" autocomplete="username" />
+    <input id="loginPass" placeholder="Password" type="password" autocomplete="current-password" />
+    <button id="loginBtn" style="padding: 8px 16px;">Login</button>
+  </div>
+  <div id="logoutSection" class="hidden" style="display: flex; gap: 12px; align-items: center;">
+    <span id="loggedInUser" style="font-weight: 500;"></span>
+    <button id="logoutBtn" style="padding: 8px 16px;">Logout</button>
+  </div>
+</div>
+
+
+
+      </div>
+
+      <div style="display:flex;justify-content:space-between;gap:16px">
+        <div class="small panel" style="flex:1">
+          <strong>Round Info</strong>
+          <div id="roundInfo" class="small">No active round</div>
+        </div>
+        <div class="small panel" style="width:220px">
+          <strong>Recent Results</strong>
+          <div id="results" style="margin-top:8px;display:flex;flex-direction:column;gap:4px;"></div>
+        </div>
+      </div>
+      <footer>AVIATOR GAME © 2023 — HIGH STAKES EDITION</footer>
+    </div>
+
+    <div class="side">
+      <div class="panel">
+        <strong>Active Players</strong>
+        <div id="players" class="players"></div>
+      </div>
+
+      <div class="panel">
+        <strong>Game Logs</strong>
+        <div id="logs" style="max-height:220px;overflow:auto;font-size:13px;color:var(--text-secondary);display:flex;flex-direction:column;gap:4px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    const SERVER = (location.hostname === 'localhost' || location.protocol === 'file:') ? 'http://localhost:3000' : location.origin;
+
+    const multiplierEl = document.getElementById('multiplier');
+    const crashPointEl = document.getElementById('crashPoint');
+    const balanceEl = document.getElementById('balance');
+    const countdownEl = document.getElementById('countdown');
+    const betInput = document.getElementById('betInput');
+    const placeBetBtn = document.getElementById('placeBetBtn');
+    const cashoutBtn = document.getElementById('cashoutBtn');
+    const playersEl = document.getElementById('players');
+    const logsEl = document.getElementById('logs');
+    const resultsEl = document.getElementById('results');
+
+    const loginUser = document.getElementById('loginUser');
+    const loginPass = document.getElementById('loginPass');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const loginSection = document.getElementById('loginSection');
+    const logoutSection = document.getElementById('logoutSection');
+    const loggedInUser = document.getElementById('loggedInUser');
+
+    const loginWrapper = document.getElementById('loginWrapper');
+
+    
+
+    const canvas = document.getElementById('stage');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width; const H = canvas.height;
+
+    let socket = null;
+    let token = localStorage.getItem('aviatorToken') || null;
+    let myBalance = 0;
+    let myBet = 0;
+    let hasCashed = false;
+    let gameInProgress = false;
+    let currentMultiplier = 1.0;
+    let crashPoint = null;
+    let planeX = 60, planeY = H - 30;
+
+    function log(msg){ const d = document.createElement('div'); d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`; logsEl.prepend(d); }
+
+    function updatePlayers(list){ playersEl.innerHTML = ''; list.forEach(p => {
+      const el = document.createElement('div'); el.className = 'player';
+      const betText = p.betAmount ? Number(p.betAmount).toFixed(2) : '';
+      const status = p.cashedOut ? `<span class="status-win">✓ ${Number(p.cashoutMultiplier||0).toFixed(2)}x</span>` : '';
+      el.innerHTML = `<div>${p.username}</div><div>${betText} ${status}</div>`;
+      playersEl.appendChild(el);
+    }); }
+
+    function addResult(text){ const d = document.createElement('div'); d.textContent = text; resultsEl.prepend(d); if(resultsEl.children.length>10) resultsEl.removeChild(resultsEl.lastChild); }
+
+    function drawStage(){
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle = '#0a1020'; ctx.fillRect(0,0,W,H);
+
+      const maxShow = Math.max(crashPoint || 5, currentMultiplier, 3);
+      const t = (currentMultiplier - 1) / (maxShow - 1);
+      const y = H - 30 - Math.max(0, Math.min(1,t)) * (H - 80);
+      planeX = 60 + (currentMultiplier - 1) * 40;
+      planeY = y;
+
+      // Draw graph line with gradient
+      const gradient = ctx.createLinearGradient(40, H-30, 40 + (maxShow-1)*40, H - 30 - (H - 80));
+      gradient.addColorStop(0, 'rgba(255,215,0,0.3)');
+      gradient.addColorStop(1, 'rgba(255,0,0,0.3)');
+      
+      ctx.beginPath(); ctx.moveTo(40,H-30);
+      for(let m=1;m<=Math.max(currentMultiplier, (crashPoint||5)); m+=0.1){
+        let tt = (m - 1) / (maxShow - 1);
+        let yy = H - 30 - Math.max(0, Math.min(1,tt)) * (H - 80);
+        ctx.lineTo(40 + (m-1)*40, yy);
+      }
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth=3;
+      ctx.stroke();
+
+      // Draw plane with more details
+      ctx.save();
+      ctx.translate(planeX, planeY);
+      ctx.rotate(Math.atan2(planeY - (H - 30 - (H - 80)), 40) * 0.3);
+      
+      // Plane body
+      ctx.fillStyle = '#ffd700';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 12, 8, 0, 0, Math.PI*2);
+      ctx.fill();
+      
+      // Cockpit
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.fillRect(-6, -8, 12, 4);
+      
+      // Wings
+      ctx.fillStyle = 'rgba(255,215,0,0.8)';
+      ctx.fillRect(-16, 2, 32, 3);
+      ctx.fillRect(-8, -5, 16, 3);
+      
+      // Tail
+      ctx.fillRect(8, -2, 6, 3);
+      
+      ctx.restore();
+
+      // Current multiplier display
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 20px Kanit';
+      ctx.textAlign = 'right';
+      ctx.fillText(currentMultiplier.toFixed(2) + 'x', W - 20, 30);
+      ctx.textAlign = 'left';
+    }
+
+    function animate(){ drawStage(); requestAnimationFrame(animate); }
+    requestAnimationFrame(animate);
+
+    loginBtn.addEventListener('click', async ()=>{
+      const u = loginUser.value.trim(); const p = loginPass.value.trim();
+      if(!u||!p){ alert('enter user/pass'); return; }
+      try{
+        const res = await fetch(SERVER + '/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+        const data = await res.json();
+        if(data.token){
+          token = data.token;
+          localStorage.setItem('aviatorToken', token);
+          myBalance = Number(data.balance||0);
+          balanceEl.textContent = 'Balance: ' + myBalance.toFixed(2);
+          loggedInUser.textContent = u;
+          loginSection.classList.add('hidden');
+          logoutSection.classList.remove('hidden');
+          connectSocket();
+          log('Logged in as '+u);
+        } else {
+          alert('login failed: '+(data.error||'unknown'));
+        }
+      }catch(e){ alert('login error '+e.message); }
+    });
+
+    logoutBtn.addEventListener('click', ()=>{
+      localStorage.removeItem('aviatorToken');
+      token = null;
+      socket?.disconnect();
+      socket = null;
+      loginSection.classList.remove('hidden');
+      logoutSection.classList.add('hidden');
+      balanceEl.textContent = 'Balance: —';
+      log('Logged out');
+    });
+
+    placeBetBtn.addEventListener('click', ()=>{
+      const bet = Number(betInput.value);
+      if(!socket){ alert('Not connected'); return; }
+      if(!bet || bet <= 0){ alert('Enter bet'); return; }
+      placeBetBtn.disabled = true;
+      socket.emit('placeBet', bet);
+    });
+
+    cashoutBtn.addEventListener('click', ()=>{
+      if(!socket){ alert('Not connected'); return; }
+      if(!gameInProgress){ alert('No active round'); return; }
+      if(hasCashed){ alert('Already cashed out'); return; }
+      socket.emit('cashout');
+      hasCashed = true;
+      cashoutBtn.disabled = true;
+    });
+
+    function connectSocket(){
+      if(!token){ return; }
+      socket = io(SERVER, { auth:{ token } });
+
+      socket.on('connect', ()=>{ log('socket connected'); });
+      socket.on('balanceUpdate', b=>{ myBalance = Number(b); balanceEl.textContent = 'Balance: ' + myBalance.toFixed(2); });
+      socket.on('betPlaced', amt=>{ myBet = Number(amt); log('Bet placed: '+myBet.toFixed(2)); });
+      socket.on('betError', msg=>{ alert('Bet error: '+msg); placeBetBtn.disabled = false; });
+      socket.on('currentBetsCount', c=>{ document.getElementById('roundInfo').textContent = c + ' players in round'; });
+      socket.on('countdownStarted', s=>{ countdownEl.textContent = 'Countdown: ' + s + 's'; placeBetBtn.disabled = false; cashoutBtn.disabled = true; gameInProgress = false; hasCashed = false; });
+      socket.on('crashPoint', p=>{ crashPoint = Number(p); crashPointEl.textContent = crashPoint.toFixed(2) + 'x'; log('Crash point: '+crashPoint); });
+      socket.on('countdownTick', s=>{ countdownEl.textContent = 'Countdown: ' + s + 's'; });
+      socket.on('countdownEnded', ()=>{ countdownEl.textContent = 'In play'; hasCashed = false; gameInProgress = true; if(myBet > 0){ cashoutBtn.disabled = false; } else { cashoutBtn.disabled = true; } placeBetBtn.disabled = true; });
+      socket.on('multiplierUpdate', m=>{ currentMultiplier = Number(m); multiplierEl.textContent = currentMultiplier.toFixed(2)+'x'; if(currentMultiplier > 1.5) { multiplierEl.classList.add('pulse'); } else { multiplierEl.classList.remove('pulse'); } });
+      socket.on('playerCashedOut', d=>{ const mult = Number(d.cashoutMultiplier ?? d.multiplier ?? 0); log(`${d.username} cashed out at ${mult.toFixed(2)}x`); });
+      socket.on('gameCrashed', m=>{ const crashM = Number(m); log('Game crashed at ' + crashM.toFixed(2) + 'x'); addResult('Crash at ' + crashM.toFixed(2) + 'x'); cashoutBtn.disabled = true; gameInProgress = false; placeBetBtn.disabled = false; myBet = 0; hasCashed = false; });
+      socket.on('roundResults', r=>{ if(Array.isArray(r.winners)){ r.winners.forEach(w=>{ addResult(`WIN: ${w.username} got ${Number(w.payout).toFixed(2)} (bet ${Number(w.betAmount).toFixed(2)} @ ${Number(w.cashoutMultiplier).toFixed(2)}x)`); }); } if(Array.isArray(r.losers)){ r.losers.forEach(l=> addResult(`LOSE: ${l.username} lost ${Number(l.betAmount).toFixed(2)}`)); } cashoutBtn.disabled = true; placeBetBtn.disabled = false; myBet = 0; hasCashed = false; gameInProgress = false; });
+      socket.on('playersList', list => updatePlayers(list));
+      socket.on('disconnect', ()=>{ log('socket disconnected'); });
+    }
+
+    // Auto-login on page load
+    window.addEventListener('DOMContentLoaded', ()=>{
+      if(token){
+        log('Found saved session, reconnecting...');
+        loginSection.classList.add('hidden');
+        logoutSection.classList.remove('hidden');
+        loggedInUser.textContent = 'Player';
+        connectSocket();
+      }
+    });
+  </script>
+
+  <script>
+  function showLoginOverlay() {
+  loginWrapper.classList.add('login-overlay');
+  loginWrapper.classList.remove('logged-in');
+  loginSection.style.display = 'flex';
+  logoutSection.style.display = 'none';
+}
+
+function showLoggedIn(username) {
+  loginWrapper.classList.remove('login-overlay');
+  loginWrapper.classList.add('logged-in');
+  loginSection.style.display = 'none';
+  logoutSection.style.display = 'flex';
+  loggedInUser.textContent = username;
+}
+
+// On page load
+window.addEventListener('load', () => {
+  if (token) {
+    // Decode token or use stored username
+    const username = 'Player'; // replace with decoded username if you have
+    showLoggedIn(username);
+  } else {
+    showLoginOverlay();
+  }
+});
+
+// Login button
+loginBtn.addEventListener('click', () => {
+  const username = loginUser.value.trim();
+  const password = loginPass.value.trim();
+
+  if (!username || !password) {
+    alert('Enter username and password.');
+    return;
+  }
+
+  fetch(`${SERVER}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.token) {
+        localStorage.setItem('aviatorToken', data.token);
+        showLoggedIn(username);
+        connectSocket(data.token);
+      } else {
+        alert('Login failed: ' + (data.error || 'Invalid credentials'));
+      }
+    })
+    .catch(err => alert('Login error: ' + err.message));
+});
+
+// Logout button
+logoutBtn.addEventListener('click', () => {
+  localStorage.removeItem('aviatorToken');
+  location.reload();
+});
+
+</script>
+
+</body>
+</html>

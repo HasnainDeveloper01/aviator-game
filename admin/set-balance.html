@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Set User Balance</title>
+</head>
+<body>
+  <h2>Admin: Set User Balance</h2>
+  <form id="balanceForm">
+  <input type="text" id="username" placeholder="Username" required>
+  <input type="number" id="balance" placeholder="Balance" required>
+  <button type="submit">Update Balance</button>
+</form>
+
+<p id="result"></p>
+
+<script>
+document.getElementById('balanceForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const username = document.getElementById('username').value;
+  const balance = document.getElementById('balance').value;
+
+  try {
+    const res = await fetch('http://localhost:3000/admin/set-balance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, balance })
+    });
+
+    const data = await res.json();
+    console.log(data);
+
+    if (res.ok) {
+      alert('Balance updated successfully');
+    } else {
+      alert(data.error || 'Error updating balance');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Error connecting to server');
+  }
+});
+
+</script>
+
+</body>
+</html>
