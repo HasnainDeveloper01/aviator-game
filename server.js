@@ -21,11 +21,10 @@ const SECRET_KEY = process.env.SECRET_KEY || 'asdfghjqwerty'; // Use ENV variabl
 
 // MySQL connection pool using Hostinger DB
 const pool = mysql.createPool({
-  connectionLimit: 10,
-  host: process.env.DB_HOST,     // e.g., mysql.hostinger.com
-  user: process.env.DB_USER,     // e.g., u764685979_aviator_admin
-  password: process.env.DB_PASS, // your password
-  database: process.env.DB_NAME, // e.g., u764685979_aviator_db
+  host: process.env.DB_HOST,       // Hostinger MySQL host
+  user: process.env.DB_USER,       // Your DB username
+  password: process.env.DB_PASS,   // Your DB password
+  database: process.env.DB_NAME,   // Your DB name
 });
 
 
