@@ -5,8 +5,13 @@ const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const path = require('path');
+
+
+
 const { Server } = require('socket.io');
 require('dotenv').config();
+
 
 const app = express();
 app.use(cors());
@@ -21,6 +26,15 @@ const pool = mysql.createPool({
   user: process.env.DB_USER,     // e.g., u764685979_aviator_admin
   password: process.env.DB_PASS, // your password
   database: process.env.DB_NAME, // e.g., u764685979_aviator_db
+});
+
+
+
+// Serve frontend
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ------------------ Signup API ------------------
