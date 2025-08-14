@@ -54,34 +54,37 @@
     <div class="message" id="message"></div>
   </form>
 
-  <script>
-    document.getElementById('signupForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const messageEl = document.getElementById('message');
+<script>
+  const SERVER_URL = 'https://aviator-game-kqzb.onrender.com'; // ✅ Add this
 
-      try {
-        const res = await fetch(`${SERVER_URL}/signup` , {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ username, password })
-        });
+  document.getElementById('signupForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const messageEl = document.getElementById('message');
 
-        const data = await res.json();
-        if (res.ok) {
-          messageEl.style.color = 'lightgreen';
-          messageEl.textContent = data.message;
-          setTimeout(() => window.location.href = 'index.html', 1500); // redirect to game
-        } else {
-          messageEl.style.color = 'red';
-          messageEl.textContent = data.error;
-        }
-      } catch (err) {
+    try {
+      const res = await fetch(`${SERVER_URL}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        messageEl.style.color = 'lightgreen';
+        messageEl.textContent = data.message;
+        setTimeout(() => window.location.href = 'index.html', 1500);
+      } else {
         messageEl.style.color = 'red';
-        messageEl.textContent = 'Error connecting to server';
+        messageEl.textContent = data.error;
       }
-    });
-  </script>
+    } catch (err) {
+      messageEl.style.color = 'red';
+      messageEl.textContent = 'Error connecting to server';
+    }
+  });
+</script>
+
 </body>
 </html>
