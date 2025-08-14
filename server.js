@@ -12,8 +12,6 @@ require('dotenv').config();
 
 const path = require('path'); // only need to require once
 
-const path = require('path');
-
 
 const app = express();
 app.use(cors());
