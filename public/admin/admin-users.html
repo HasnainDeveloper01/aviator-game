@@ -27,7 +27,7 @@
   <script>
     async function loadUsers() {
       try {
-        const res = await fetch('http://localhost:3000/admin/get-users');
+        const res = await fetch(`${SERVER_URL}/signup`);
         const users = await res.json();
 
         const tbody = document.querySelector('#usersTable tbody');
@@ -85,7 +85,7 @@
       const balance = document.getElementById(`edit-balance-${id}`).value;
 
       try {
-        const res = await fetch(`http://localhost:3000/admin/update-user/${id}`, {
+        const res = await fetch(`${SERVER_URL}/signup/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, balance })
@@ -108,7 +108,7 @@
       if (!confirm('Are you sure you want to delete this user?')) return;
 
       try {
-        const res = await fetch(`http://localhost:3000/admin/delete-user/${id}`, { method: 'DELETE' });
+        const res = await fetch(`${SERVER_URL}/signup${id}`, { method: 'DELETE' });
         const data = await res.json();
         if (res.ok) {
           alert('User deleted successfully');

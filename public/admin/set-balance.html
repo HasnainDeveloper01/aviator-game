@@ -21,7 +21,7 @@ document.getElementById('balanceForm').addEventListener('submit', async (e) => {
   const balance = document.getElementById('balance').value;
 
   try {
-    const res = await fetch('http://localhost:3000/admin/set-balance', {
+    const res = await fetch(`${SERVER_URL}/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, balance })

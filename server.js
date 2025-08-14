@@ -2,6 +2,7 @@
 const express = require('express');
 const http = require('http');
 const { Pool } = require('pg');
+
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
@@ -12,22 +13,32 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 app.use(express.json());
+// Serve all files in the public folder
+app.use(express.static(path.join(__dirname, 'public')));
+
 
 const SECRET_KEY = process.env.SECRET_KEY || 'asdfghjqwerty';
 
-// PostgreSQL connection pool
+const { Pool } = require('pg');
+
 const pool = new Pool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 5432,
+  port: process.env.DB_PORT,
+  ssl: {
+    rejectUnauthorized: false
+  }
+
 });
 
 // Serve index.html at root
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+// Serve index.html at root
+// app.get('/', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'index.html'));
+// });
 
 // ------------------ Signup API ------------------
 app.post('/signup', async (req, res) => {
