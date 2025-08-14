@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Login</title>
+</head>
+<body>
+  <h2>Admin Login</h2>
+  <form id="adminLoginForm">
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <button type="submit">Login</button>
+  </form>
+
+  <p id="message"></p>
+
+  <script>
+    const SERVER_URL = "https://aviator-game-kqzb.onrender.com";
+
+    document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch(`${SERVER_URL}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && username === 'admin_aviator_12-AABE') {
+          localStorage.setItem('adminToken', data.token);
+          window.location.href = 'admin/admin-users.html'; // redirect to admin panel
+        } else {
+          document.getElementById('message').innerText = data.error || 'Invalid credentials';
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById('message').innerText = 'Server error';
+      }
+    });
+  </script>
+</body>
+</html>
