@@ -1,33 +1,28 @@
-// server.js (Render + Hostinger ready)
+// server.js (PostgreSQL + Render ready)
 const express = require('express');
 const http = require('http');
-const mysql = require('mysql2/promise');
+const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const path = require('path');
-
-
-
 const { Server } = require('socket.io');
 require('dotenv').config();
-
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const SECRET_KEY = process.env.SECRET_KEY || 'asdfghjqwerty'; // Use ENV variable for security
+const SECRET_KEY = process.env.SECRET_KEY || 'asdfghjqwerty';
 
-// MySQL connection pool using Hostinger DB
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,       // Hostinger MySQL host
-  user: process.env.DB_USER,       // Your DB username
-  password: process.env.DB_PASS,   // Your DB password
-  database: process.env.DB_NAME,   // Your DB name
+// PostgreSQL connection pool
+const pool = new Pool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT || 5432,
 });
-
-
 
 // Serve index.html at root
 app.get('/', (req, res) => {
@@ -42,14 +37,12 @@ app.post('/signup', async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 8);
     await pool.query(
-      'INSERT INTO users (username, password) VALUES (?, ?)',
-      [username, hashedPassword]
+      'INSERT INTO users (username, password, balance) VALUES ($1, $2, $3)',
+      [username, hashedPassword, 1000] // starting balance 1000
     );
     res.json({ message: 'User registered successfully' });
   } catch (err) {
-    if (err.code === 'ER_DUP_ENTRY') {
-      return res.status(400).json({ error: 'Username already exists' });
-    }
+    if (err.code === '23505') return res.status(400).json({ error: 'Username already exists' });
     console.error(err);
     res.status(500).json({ error: 'Server error' });
   }
@@ -61,10 +54,10 @@ app.post('/login', async (req, res) => {
   if (!username || !password) return res.status(400).json({ error: 'Missing fields' });
 
   try {
-    const [rows] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
-    if (rows.length === 0) return res.status(400).json({ error: 'Invalid credentials' });
+    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    if (result.rows.length === 0) return res.status(400).json({ error: 'Invalid credentials' });
 
-    const user = rows[0];
+    const user = result.rows[0];
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) return res.status(400).json({ error: 'Invalid credentials' });
 
@@ -77,14 +70,13 @@ app.post('/login', async (req, res) => {
 });
 
 // ------------------ Admin APIs ------------------
-// Set balance
 app.post('/admin/set-balance', async (req, res) => {
   try {
     const { username, balance } = req.body;
     if (!username || isNaN(balance)) return res.status(400).json({ error: 'Invalid username or balance' });
 
-    const [result] = await pool.query('UPDATE users SET balance = ? WHERE username = ?', [balance, username]);
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'User not found' });
+    const result = await pool.query('UPDATE users SET balance = $1 WHERE username = $2', [balance, username]);
+    if (result.rowCount === 0) return res.status(404).json({ error: 'User not found' });
 
     res.json({ message: 'Balance updated successfully' });
   } catch (err) {
@@ -93,49 +85,45 @@ app.post('/admin/set-balance', async (req, res) => {
   }
 });
 
-// Get users
 app.get('/admin/get-users', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT id, username, balance FROM users');
-    res.json(rows);
+    const result = await pool.query('SELECT id, username, balance FROM users');
+    res.json(result.rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Database error' });
   }
 });
 
-// Update user
 app.put('/admin/update-user/:id', async (req, res) => {
   const { id } = req.params;
   const { username, password, balance } = req.body;
 
   try {
     let sql, params;
-
     if (password && password.trim() !== '') {
       const hashedPassword = await bcrypt.hash(password, 10);
-      sql = "UPDATE users SET username = ?, password = ?, balance = ? WHERE id = ?";
+      sql = 'UPDATE users SET username = $1, password = $2, balance = $3 WHERE id = $4';
       params = [username, hashedPassword, balance, id];
     } else {
-      sql = "UPDATE users SET username = ?, balance = ? WHERE id = ?";
+      sql = 'UPDATE users SET username = $1, balance = $2 WHERE id = $3';
       params = [username, balance, id];
     }
 
-    const [result] = await pool.query(sql, params);
-    if (result.affectedRows > 0) res.json({ success: true, message: "User updated successfully" });
-    else res.status(404).json({ success: false, message: "User not found" });
+    const result = await pool.query(sql, params);
+    if (result.rowCount > 0) res.json({ success: true, message: 'User updated successfully' });
+    else res.status(404).json({ success: false, message: 'User not found' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: "Database error" });
+    res.status(500).json({ success: false, message: 'Database error' });
   }
 });
 
-// Delete user
 app.delete('/admin/delete-user/:id', async (req, res) => {
   try {
     const id = req.params.id;
-    const [result] = await pool.query('DELETE FROM users WHERE id = ?', [id]);
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'User not found' });
+    const result = await pool.query('DELETE FROM users WHERE id = $1', [id]);
+    if (result.rowCount === 0) return res.status(404).json({ error: 'User not found' });
     res.json({ message: 'User deleted successfully' });
   } catch (err) {
     console.error(err);
@@ -143,11 +131,10 @@ app.delete('/admin/delete-user/:id', async (req, res) => {
   }
 });
 
-// ------------------ Socket.io Multiplayer Game Logic ------------------
+// ------------------ Socket.io Multiplayer Game ------------------
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server, { cors: { origin: '*' } });
 
-// Game state variables
 let currentBets = [];
 let countdownTimer = null;
 let countdownSeconds = 10;
@@ -182,7 +169,7 @@ function startCountdown() {
   }, 1000);
 }
 
-// Multiplier logic
+// Multiplier
 function startMultiplier() {
   if (gameInProgress) return;
   multiplier = 1.0;
@@ -202,7 +189,7 @@ function startMultiplier() {
   }, 100);
 }
 
-// Crash logic
+// Crash
 function crashGame() {
   clearInterval(multiplierInterval);
   multiplierInterval = null;
@@ -212,7 +199,7 @@ function crashGame() {
   currentBets = [];
 }
 
-// Payout calculation
+// Payouts
 async function calculatePayouts() {
   const winners = currentBets.filter(b => b.cashedOut);
   const losers = currentBets.filter(b => !b.cashedOut);
@@ -227,7 +214,7 @@ async function calculatePayouts() {
   for (const bet of winners) {
     const profit = bet.betAmount * (bet.cashoutMultiplier - 1) * payoutRatio;
     const payout = bet.betAmount + profit;
-    await pool.query('UPDATE users SET balance = balance + ? WHERE id = ?', [payout, bet.userId]);
+    await pool.query('UPDATE users SET balance = balance + $1 WHERE id = $2', [payout, bet.userId]);
   }
 
   io.emit('roundResults', {
@@ -246,14 +233,14 @@ async function calculatePayouts() {
     adminCommission,
   });
 
-  // Update balances to connected sockets
+  // Update balances for connected sockets
   for (const socket of await io.fetchSockets()) {
-    const [rows] = await pool.query('SELECT balance FROM users WHERE id = ?', [socket.user.id]);
-    if (rows.length > 0) socket.emit('balanceUpdate', rows[0].balance);
+    const result = await pool.query('SELECT balance FROM users WHERE id = $1', [socket.user.id]);
+    if (result.rows.length > 0) socket.emit('balanceUpdate', result.rows[0].balance);
   }
 }
 
-// Socket.io auth middleware
+// Socket.io authentication
 io.use(async (socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error('Authentication error'));
@@ -270,8 +257,8 @@ io.on('connection', (socket) => {
   console.log(`User connected: ${socket.user.username}`);
 
   (async () => {
-    const [rows] = await pool.query('SELECT balance FROM users WHERE id = ?', [socket.user.id]);
-    if (rows.length > 0) socket.emit('balanceUpdate', rows[0].balance);
+    const result = await pool.query('SELECT balance FROM users WHERE id = $1', [socket.user.id]);
+    if (result.rows.length > 0) socket.emit('balanceUpdate', result.rows[0].balance);
   })();
 
   socket.on('placeBet', async (betAmount) => {
@@ -280,11 +267,11 @@ io.on('connection', (socket) => {
     betAmount = Number(betAmount);
     if (isNaN(betAmount) || betAmount <= 0) return socket.emit('betError', 'Invalid bet amount');
 
-    const [rows] = await pool.query('SELECT balance FROM users WHERE id = ?', [socket.user.id]);
-    if (rows.length === 0) return socket.emit('betError', 'User not found');
-    if (rows[0].balance < betAmount) return socket.emit('betError', 'Insufficient balance');
+    const result = await pool.query('SELECT balance FROM users WHERE id = $1', [socket.user.id]);
+    if (result.rows.length === 0) return socket.emit('betError', 'User not found');
+    if (result.rows[0].balance < betAmount) return socket.emit('betError', 'Insufficient balance');
 
-    await pool.query('UPDATE users SET balance = balance - ? WHERE id = ?', [betAmount, socket.user.id]);
+    await pool.query('UPDATE users SET balance = balance - $1 WHERE id = $2', [betAmount, socket.user.id]);
 
     currentBets.push({
       userId: socket.user.id,
