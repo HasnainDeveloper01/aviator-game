@@ -1,27 +1,17 @@
-// server.js (PostgreSQL + Render ready)
 const express = require('express');
 const http = require('http');
 const { Pool } = require('pg');
-
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const path = require('path');
 const { Server } = require('socket.io');
 require('dotenv').config();
-
 const path = require('path'); // only need to require once
-
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-
-// Serve all files in the public folder
-
 app.use(express.static(path.join(__dirname, 'public')));
-
 
 const SECRET_KEY = process.env.SECRET_KEY || 'asdfghjqwerty';
 
