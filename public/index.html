@@ -743,5 +743,42 @@ logoutBtn.addEventListener('click', () => {
 
 </script>
 
+<script>
+  window.addEventListener('beforeunload', function (e) {
+    if (localStorage.getItem('aviatorToken')) {
+      // Modern browsers ignore custom messages, but showing prompt anyway
+      const confirmationMessage = 'Page refresh or navigation is disabled while aviatorToken is set. Are you sure?';
+      e.preventDefault();
+      e.returnValue = confirmationMessage; // For some browsers
+      return confirmationMessage;          // For others
+    }
+    // If no token, no prompt
+  });
+
+  // Your existing disable keyboard and contextmenu code here
+  function disableRefresh(event) {
+    if (localStorage.getItem('aviatorToken')) {
+      if (event.key === 'F5' || event.keyCode === 116) {
+        event.preventDefault();
+        alert('Page refresh is disabled while aviatorToken is set.');
+      }
+      if ((event.ctrlKey || event.metaKey) && (event.key === 'r' || event.key === 'R' || event.keyCode === 82)) {
+        event.preventDefault();
+        alert('Page refresh is disabled while aviatorToken is set.');
+      }
+    }
+  }
+
+  function disableContextMenu(event) {
+    if (localStorage.getItem('aviatorToken')) {
+      event.preventDefault();
+      alert('Right-click refresh is disabled while aviatorToken is set.');
+    }
+  }
+
+  window.addEventListener('keydown', disableRefresh);
+  window.addEventListener('contextmenu', disableContextMenu);
+</script>
+
 </body>
 </html>
