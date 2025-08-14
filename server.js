@@ -9,11 +9,12 @@ const cors = require('cors');
 const path = require('path');
 const { Server } = require('socket.io');
 require('dotenv').config();
+const path = require('path');
+
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-// Serve all files in the public folder
 app.use(express.static(path.join(__dirname, 'public')));
 
 
