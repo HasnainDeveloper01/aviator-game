@@ -2,16 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Manage Users</title>
+  <title>Admin — Manage Users</title>
   <style>
-    table { border-collapse: collapse; width: 100%; }
-    th, td { padding: 8px; border: 1px solid #ddd; }
-    button { padding: 5px 10px; margin: 2px; }
-    .edit-form { background: #f0f0f0; padding: 10px; }
+    body { font-family: Arial, sans-serif; background: #121212; color: white; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; background: #1e1e1e; }
+    th, td { padding: 8px; border: 1px solid #444; text-align: center; }
+    button { padding: 5px 10px; margin: 2px; cursor: pointer; }
+    input { padding: 5px; margin: 2px; width: 100px; }
+    .edit-form { background: #2a2a2a; padding: 10px; }
   </style>
 </head>
 <body>
-  <h1>Admin — Manage Users</h1>
+  <h1>Admin Panel — Manage Users</h1>
   <table id="usersTable">
     <thead>
       <tr>
@@ -25,9 +27,21 @@
   </table>
 
   <script>
+    const SERVER_URL = window.location.origin;
+    const token = localStorage.getItem('adminToken');
+
+    // Redirect if not logged in as admin
+    if (!token) {
+      alert('Please login as admin to access this page');
+      window.location.href = '/admin-login.html'; // Adjust path if needed
+    }
+
     async function loadUsers() {
       try {
-        const res = await fetch(`${SERVER_URL}/signup`);
+        const res = await fetch(`${SERVER_URL}/admin/get-users`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Failed to fetch users');
         const users = await res.json();
 
         const tbody = document.querySelector('#usersTable tbody');
@@ -38,9 +52,9 @@
           tr.innerHTML = `
             <td>${user.id}</td>
             <td>${user.username}</td>
-            <td>${user.balance || 0}</td>
+            <td>${user.balance}</td>
             <td>
-              <button onclick="showEditForm(${user.id}, '${user.username}', ${user.balance || 0})">Edit</button>
+              <button onclick="showEditForm(${user.id}, '${user.username}', ${user.balance})">Edit</button>
               <button onclick="deleteUser(${user.id})">Delete</button>
             </td>
           `;
@@ -48,7 +62,7 @@
         });
       } catch (err) {
         console.error(err);
-        alert('Failed to load users');
+        alert('Error loading users');
       }
     }
 
@@ -58,18 +72,14 @@
           <td colspan="4">
             <form onsubmit="updateUser(event, ${id})">
               <input type="text" id="edit-username-${id}" value="${username}" required>
-              <input type="number" id="edit-balance-${id}" value="${balance}">
+              <input type="number" id="edit-balance-${id}" value="${balance}" required>
               <button type="submit">Save</button>
               <button type="button" onclick="cancelEdit(${id})">Cancel</button>
             </form>
           </td>
         </tr>
       `;
-
-      // Remove existing edit forms
       document.querySelectorAll('[id^="editRow-"]').forEach(e => e.remove());
-
-      // Insert form after the row
       const userRow = [...document.querySelectorAll('#usersTable tbody tr')]
         .find(row => row.firstElementChild.textContent == id);
       userRow.insertAdjacentHTML('afterend', formHtml);
@@ -82,25 +92,28 @@
     async function updateUser(e, id) {
       e.preventDefault();
       const username = document.getElementById(`edit-username-${id}`).value;
-      const balance = document.getElementById(`edit-balance-${id}`).value;
+      const balance = Number(document.getElementById(`edit-balance-${id}`).value);
 
       try {
-        const res = await fetch(`${SERVER_URL}/signup/${id}`, {
+        const res = await fetch(`${SERVER_URL}/admin/update-user/${id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify({ username, balance })
         });
 
         const data = await res.json();
         if (res.ok) {
-          alert('User updated successfully');
+          alert('✅ User updated successfully');
           loadUsers();
         } else {
-          alert(data.error || 'Error updating user');
+          alert('❌ ' + (data.message || 'Error updating user'));
         }
       } catch (err) {
         console.error(err);
-        alert('Error updating user');
+        alert('❌ Error updating user');
       }
     }
 
@@ -108,17 +121,20 @@
       if (!confirm('Are you sure you want to delete this user?')) return;
 
       try {
-        const res = await fetch(`${SERVER_URL}/signup${id}`, { method: 'DELETE' });
+        const res = await fetch(`${SERVER_URL}/admin/delete-user/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         const data = await res.json();
         if (res.ok) {
-          alert('User deleted successfully');
+          alert('✅ User deleted successfully');
           loadUsers();
         } else {
-          alert(data.error || 'Error deleting user');
+          alert('❌ ' + (data.error || 'Error deleting user'));
         }
       } catch (err) {
         console.error(err);
-        alert('Error deleting user');
+        alert('❌ Error deleting user');
       }
     }
 

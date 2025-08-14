@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const { Server } = require('socket.io');
 require('dotenv').config();
-const path = require('path'); // only need to require once
+const path = require('path');
 
 const app = express();
 app.use(cors());
@@ -22,17 +22,8 @@ const pool = new Pool({
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 5432,
-  ssl: {
-    rejectUnauthorized: false
-  }
-
+  ssl: { rejectUnauthorized: false },
 });
-
-// Serve index.html at root
-// Serve index.html at root
-// app.get('/', (req, res) => {
-//   res.sendFile(path.join(__dirname, 'index.html'));
-// });
 
 // ------------------ Signup API ------------------
 app.post('/signup', async (req, res) => {
@@ -42,8 +33,8 @@ app.post('/signup', async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 8);
     await pool.query(
-      'INSERT INTO users (username, password, balance) VALUES ($1, $2, $3)',
-      [username, hashedPassword, 1000] // starting balance 1000
+      'INSERT INTO users (username, password, balance, is_admin) VALUES ($1, $2, $3, $4)',
+      [username, hashedPassword, 1000, false] // starting balance 1000, regular user
     );
     res.json({ message: 'User registered successfully' });
   } catch (err) {
@@ -66,16 +57,37 @@ app.post('/login', async (req, res) => {
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) return res.status(400).json({ error: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1d' });
-    res.json({ token, balance: user.balance });
+    const token = jwt.sign(
+      { id: user.id, username: user.username, is_admin: user.is_admin },
+      SECRET_KEY,
+      { expiresIn: '1d' }
+    );
+
+    res.json({ token, balance: user.balance, is_admin: user.is_admin });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
+// ------------------ Admin Middleware ------------------
+function adminOnly(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ error: 'Missing token' });
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const payload = jwt.verify(token, SECRET_KEY);
+    if (!payload.is_admin) return res.status(403).json({ error: 'Access denied' });
+    req.user = payload;
+    next();
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+}
+
 // ------------------ Admin APIs ------------------
-app.post('/admin/set-balance', async (req, res) => {
+app.post('/admin/set-balance', adminOnly, async (req, res) => {
   try {
     const { username, balance } = req.body;
     if (!username || isNaN(balance)) return res.status(400).json({ error: 'Invalid username or balance' });
@@ -90,7 +102,7 @@ app.post('/admin/set-balance', async (req, res) => {
   }
 });
 
-app.get('/admin/get-users', async (req, res) => {
+app.get('/admin/get-users', adminOnly, async (req, res) => {
   try {
     const result = await pool.query('SELECT id, username, balance FROM users');
     res.json(result.rows);
@@ -100,7 +112,7 @@ app.get('/admin/get-users', async (req, res) => {
   }
 });
 
-app.put('/admin/update-user/:id', async (req, res) => {
+app.put('/admin/update-user/:id', adminOnly, async (req, res) => {
   const { id } = req.params;
   const { username, password, balance } = req.body;
 
@@ -124,7 +136,7 @@ app.put('/admin/update-user/:id', async (req, res) => {
   }
 });
 
-app.delete('/admin/delete-user/:id', async (req, res) => {
+app.delete('/admin/delete-user/:id', adminOnly, async (req, res) => {
   try {
     const id = req.params.id;
     const result = await pool.query('DELETE FROM users WHERE id = $1', [id]);
@@ -134,6 +146,15 @@ app.delete('/admin/delete-user/:id', async (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
   }
+});
+
+// ------------------ Serve Admin HTML ------------------
+app.get('/admin/admin-users.html', adminOnly, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'admin-users.html'));
+});
+
+app.get('/admin/set-balance.html', adminOnly, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'set-balance.html'));
 });
 
 // ------------------ Socket.io Multiplayer Game ------------------
@@ -149,7 +170,6 @@ let multiplierInterval = null;
 let gameInProgress = false;
 let crashMultiplier = 0;
 
-// Countdown
 function startCountdown() {
   if (countdownActive) return;
   countdownActive = true;
@@ -174,7 +194,6 @@ function startCountdown() {
   }, 1000);
 }
 
-// Multiplier
 function startMultiplier() {
   if (gameInProgress) return;
   multiplier = 1.0;
@@ -194,7 +213,6 @@ function startMultiplier() {
   }, 100);
 }
 
-// Crash
 function crashGame() {
   clearInterval(multiplierInterval);
   multiplierInterval = null;
@@ -204,7 +222,6 @@ function crashGame() {
   currentBets = [];
 }
 
-// Payouts
 async function calculatePayouts() {
   const winners = currentBets.filter(b => b.cashedOut);
   const losers = currentBets.filter(b => !b.cashedOut);
@@ -238,14 +255,12 @@ async function calculatePayouts() {
     adminCommission,
   });
 
-  // Update balances for connected sockets
   for (const socket of await io.fetchSockets()) {
     const result = await pool.query('SELECT balance FROM users WHERE id = $1', [socket.user.id]);
     if (result.rows.length > 0) socket.emit('balanceUpdate', result.rows[0].balance);
   }
 }
 
-// Socket.io authentication
 io.use(async (socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error('Authentication error'));
