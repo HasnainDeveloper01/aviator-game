@@ -103,6 +103,8 @@ app.post('/admin/set-balance', adminOnly, async (req, res) => {
   }
 });
 
+
+
 app.get('/admin/get-users', adminOnly, async (req, res) => {
   try {
     const result = await pool.query('SELECT id, username, balance FROM users');
@@ -156,6 +158,11 @@ app.get('/admin/admin-users.html', adminOnly, (req, res) => {
 
 app.get('/admin/set-balance.html', adminOnly, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'set-balance.html'));
+});
+
+// Protect signup.html
+app.get('/signup.html', adminOnly, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'signup.html'));
 });
 
 // ------------------ Socket.io Multiplayer Game ------------------
