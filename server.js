@@ -71,6 +71,8 @@ app.post('/login', async (req, res) => {
   }
 });
 
+
+
 // ------------------ Admin Middleware ------------------
 function adminOnly(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -317,8 +319,16 @@ io.on('connection', (socket) => {
   })();
 
   // ------------------- Place Bet -------------------
-  socket.on('placeBet', async (betAmount) => {
+socket.on('placeBet', async (betAmount) => {
     if (gameInProgress) return socket.emit('betError', 'Betting is closed for this round');
+
+    // Prevent multiple bets during countdown
+    if (countdownActive) {
+        const alreadyBet = currentBets.some(b => b.userId === socket.user.id);
+        if (alreadyBet) {
+            return socket.emit('betError', 'You have already placed a bet for this round');
+        }
+    }
 
     betAmount = Number(betAmount);
     if (isNaN(betAmount) || betAmount <= 0) return socket.emit('betError', 'Invalid bet amount');
@@ -330,12 +340,12 @@ io.on('connection', (socket) => {
     await pool.query('UPDATE users SET balance = balance - $1 WHERE id = $2', [betAmount, socket.user.id]);
 
     currentBets.push({
-      userId: socket.user.id,
-      username: socket.user.username,
-      betAmount,
-      cashoutMultiplier: null,
-      cashedOut: false,
-      socketId: socket.id,
+        userId: socket.user.id,
+        username: socket.user.username,
+        betAmount,
+        cashoutMultiplier: null,
+        cashedOut: false,
+        socketId: socket.id,
     });
 
     socket.emit('betPlaced', betAmount);
@@ -343,8 +353,10 @@ io.on('connection', (socket) => {
     addLog(`${socket.user.username} placed bet: ${betAmount}`);
 
     if (currentBets.length >= 2 && !countdownActive && !gameInProgress) startCountdown();
-  });
+});
 
+
+  
   // ------------------- Cashout -------------------
   socket.on('cashout', () => {
     if (!gameInProgress) return socket.emit('cashoutError', 'No game in progress');

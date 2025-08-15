@@ -6,6 +6,8 @@
   <title>Aviator Game — High Stakes</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -123,7 +125,11 @@
           <input type="number" id="betInput" placeholder="Bet amount" min="1" />
           <button id="placeBetBtn">Bet</button>
           <button id="cashoutBtn" class="btn-danger" disabled>Cashout</button>
+            <a href="detail.html" style="background-color: #ffd700; color: #ffffff; padding: 12px 20px; border-radius: 8px; text-decoration: none;  display: inline-block; box-shadow: 0 0 10px rgba(255,215,0,0.7); transition: 0.3s;">
+  📄 Deposit
+</a>
         </div>
+        
       </div>
 
       <div style="display:flex;justify-content:space-between;gap:16px; flex-wrap:wrap;">
@@ -131,7 +137,7 @@
           <strong>Round Info</strong>
           <div id="roundInfo" class="small" style="color:#ffd700;">No active round</div>
         </div>
-        <div class="small panel" style="width:220px; flex:1">
+        <div class="small panel" style="width:220px;height: 100px;overflow-y: scroll; flex:1">
           <strong>Recent Results</strong>
           <div id="results" style="margin-top:8px;display:flex;flex-direction:column;gap:4px;"></div>
         </div>
@@ -140,12 +146,12 @@
     </div>
 
     <div class="side">
-      <div class="panel">
+      <div class="panel" style="height: 100px;overflow-y: scroll;">
         <strong>Active Players</strong>
         <div id="players" class="players"></div>
       </div>
 
-      <div class="panel">
+      <div class="panel" style="height: 100px;overflow-y: scroll;">
         <strong>Game Logs</strong>
         <div id="logs" style="max-height:220px;overflow:auto;font-size:13px;color:var(--text-secondary);display:flex;flex-direction:column;gap:4px;"></div>
       </div>
@@ -159,9 +165,20 @@
   <!-- Login Modal -->
   <div id="loginWrapper">
     <div id="loginSection" class="login">
+    <!-- Gaming-style heading -->
+<h1 style="color: #ffd700; text-align: center; font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 700; text-shadow: 0 0 8px #ffd700;">
+  Aviator Login
+</h1>
+
       <input id="loginUser" placeholder="Username" autocomplete="username" />
       <input id="loginPass" placeholder="Password" type="password" autocomplete="current-password" />
       <button id="loginBtn">Login</button>
+      <a href="detail.html" style="color: #ffd700; text-decoration: none; transition: 0.3s;"
+   onmouseover="this.style.textShadow='0 0 8px #ffd700';"
+   onmouseout="this.style.textShadow='none';">
+   Create an Account?
+</a>
+
     </div>
   </div>
 
