@@ -34,7 +34,7 @@ app.post('/signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 8);
     await pool.query(
       'INSERT INTO users (username, password, balance, is_admin) VALUES ($1, $2, $3, $4)',
-      [username, hashedPassword, 1000, false] // starting balance 1000, regular user
+      [username, hashedPassword, 1000, false]
     );
     res.json({ message: 'User registered successfully' });
   } catch (err) {
@@ -170,6 +170,15 @@ let multiplierInterval = null;
 let gameInProgress = false;
 let crashMultiplier = 0;
 
+// --- Game logs storage ---
+let gameLogs = [];
+function addLog(msg){
+  const logMsg = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  gameLogs.unshift(logMsg);
+  if(gameLogs.length>50) gameLogs.pop();
+  console.log(logMsg);
+}
+
 function startCountdown() {
   if (countdownActive) return;
   countdownActive = true;
@@ -179,6 +188,8 @@ function startCountdown() {
   io.emit('countdownStarted', countdownSeconds);
   io.emit('crashPoint', crashMultiplier);
 
+  addLog(`Countdown started, crash point at ${crashMultiplier}x`);
+
   countdownTimer = setInterval(() => {
     countdownSeconds--;
     io.emit('countdownTick', countdownSeconds);
@@ -187,6 +198,7 @@ function startCountdown() {
       clearInterval(countdownTimer);
       countdownActive = false;
       io.emit('countdownEnded');
+      addLog('Countdown ended, game in progress');
 
       if (currentBets.length > 0) startMultiplier();
       else currentBets = [];
@@ -199,6 +211,7 @@ function startMultiplier() {
   multiplier = 1.0;
   gameInProgress = true;
   io.emit('multiplierUpdate', multiplier);
+  addLog('Multiplier started');
 
   multiplierInterval = setInterval(() => {
     multiplier += 0.01;
@@ -218,6 +231,7 @@ function crashGame() {
   multiplierInterval = null;
   gameInProgress = false;
   io.emit('gameCrashed', multiplier);
+  addLog(`Game crashed at ${multiplier.toFixed(2)}x`);
   calculatePayouts();
   currentBets = [];
 }
@@ -261,6 +275,7 @@ async function calculatePayouts() {
   }
 }
 
+// ------------------- Socket Middleware -------------------
 io.use(async (socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error('Authentication error'));
@@ -274,13 +289,26 @@ io.use(async (socket, next) => {
 });
 
 io.on('connection', (socket) => {
-  console.log(`User connected: ${socket.user.username}`);
+  addLog(`User connected: ${socket.user.username}`);
 
   (async () => {
     const result = await pool.query('SELECT balance FROM users WHERE id = $1', [socket.user.id]);
-    if (result.rows.length > 0) socket.emit('balanceUpdate', result.rows[0].balance);
+    const balance = result.rows.length > 0 ? result.rows[0].balance : 0;
+
+    // --- Send initial state to client ---
+    const userBet = currentBets.find(b => b.userId === socket.user.id);
+    socket.emit('initPlayerState', {
+      balance,
+      myBet: userBet ? userBet.betAmount : 0,
+      hasCashed: userBet ? userBet.cashedOut : false,
+      gameInProgress,
+      currentMultiplier: multiplier,
+      crashPoint: crashMultiplier,
+      logs: gameLogs,
+    });
   })();
 
+  // ------------------- Place Bet -------------------
   socket.on('placeBet', async (betAmount) => {
     if (gameInProgress) return socket.emit('betError', 'Betting is closed for this round');
 
@@ -304,10 +332,12 @@ io.on('connection', (socket) => {
 
     socket.emit('betPlaced', betAmount);
     io.emit('currentBetsCount', currentBets.length);
+    addLog(`${socket.user.username} placed bet: ${betAmount}`);
 
     if (currentBets.length >= 2 && !countdownActive && !gameInProgress) startCountdown();
   });
 
+  // ------------------- Cashout -------------------
   socket.on('cashout', () => {
     if (!gameInProgress) return socket.emit('cashoutError', 'No game in progress');
 
@@ -319,10 +349,11 @@ io.on('connection', (socket) => {
 
     socket.emit('cashedOut', multiplier);
     io.emit('playerCashedOut', { userId: bet.userId, username: bet.username, cashoutMultiplier: multiplier });
+    addLog(`${socket.user.username} cashed out at ${multiplier.toFixed(2)}x`);
   });
 
   socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.user.username}`);
+    addLog(`User disconnected: ${socket.user.username}`);
   });
 });
 

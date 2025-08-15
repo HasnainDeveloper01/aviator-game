@@ -21,400 +21,85 @@
       --text-secondary: #9ca3af;
       --border: rgba(255,255,255,0.08);
     }
-    
-    * {
-      box-sizing: border-box;
-      font-family: 'Kanit', system-ui, -apple-system, sans-serif;
-      color: var(--text);
-      margin: 0;
-      padding: 0;
-    }
-    
+    * { box-sizing:border-box; margin:0; padding:0; font-family:'Kanit', system-ui, -apple-system, sans-serif; color:var(--text);}
     body {
-      margin: 0;
+      margin:0;
       background: radial-gradient(circle at center, #0a1020 0%, #050913 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      overflow-x: hidden;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      overflow-x:hidden;
     }
     
     .wrap {
-      width: 100%;
-      max-width: 1200px;
-      background: rgba(10, 14, 39, 0.8);
-      border-radius: 16px;
-      display: grid;
+      width:100%;
+      max-width:1200px;
+      background: rgba(10,14,39,0.8);
+      border-radius:16px;
+      display:grid;
       grid-template-columns: 1fr 380px;
-      gap: 20px;
-      padding: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      gap:20px;
+      padding:20px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.3);
       backdrop-filter: blur(5px);
-      border: 1px solid var(--border);
+      border:1px solid var(--border);
     }
-    
-    .game-card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      box-shadow: inset 0 0 0 1px var(--border);
+    .game-card { background:var(--card); border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:16px; box-shadow: inset 0 0 0 1px var(--border);}
+    .top-row { display:flex; justify-content:space-between; align-items:center; padding-bottom:12px; border-bottom:1px solid var(--border);}
+    .multiplier { font-size:52px; font-weight:700; color:var(--accent); text-shadow:0 0 10px rgba(255,215,0,0.3); letter-spacing:1px; line-height:1;}
+    canvas { background: linear-gradient(180deg,#0a1428,#070e1f); border-radius:12px; width:100%; height:auto; max-height:380px; box-shadow:0 4px 15px rgba(0,0,0,0.2);}
+    .controls { display:flex; gap:12px; align-items:center; padding-top:12px; border-top:1px solid var(--border); flex-wrap:wrap;}
+    input[type=number] { padding:12px 16px; border-radius:8px; border:none; width:160px; font-size:16px; background:rgba(0,0,0,0.3); border:1px solid var(--border); font-weight:500; transition:all 0.2s;}
+    input[type=number]:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(255,215,0,0.2);}
+    button { padding:12px 20px; border-radius:8px; border:none; background:var(--accent); color:#111827; font-weight:600; cursor:pointer; font-size:16px; transition:all 0.2s; text-transform:uppercase; letter-spacing:0.5px;}
+    button:hover { background:var(--accent-dark); transform:translateY(-1px);}
+    button:active { transform:translateY(0);}
+    .btn-danger { background: var(--red); color:white;}
+    .btn-danger:hover { background:#dc2626;}
+    .side { display:flex; flex-direction:column; gap:16px;}
+    .panel { background: var(--card); padding:16px; border-radius:12px; box-shadow: inset 0 0 0 1px var(--border);}
+    .panel strong { font-size:18px; font-weight:600; display:block; margin-bottom:12px; color:var(--text); letter-spacing:0.5px;}
+    .small { font-size:14px; color:var(--text-secondary);}
+    .players { max-height:220px; overflow:auto;}
+    .player { display:flex; justify-content:space-between; padding:8px 6px; border-bottom:1px solid var(--border); font-size:14px;}
+    .player:last-child { border-bottom:none;}
+    footer { font-size:12px; color:var(--muted); text-align:center; margin-top:12px; opacity:0.7;}
+    .login { display:flex; flex-direction:column; gap:16px; align-items:center; background:rgba(18,21,42,0.95); padding:30px 40px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.7); width:320px; max-width:90vw; text-align:center;}
+    .login input { padding:12px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.3); color:#f3f4f6; font-size:16px; outline:none; transition:border-color 0.2s; width:100%;}
+    .login input::placeholder { color:rgba(156,163,175,0.7);}
+    .login input:focus { border-color:#ffd700;}
+    .login button { background:#ffd700; border:none; border-radius:8px; padding:12px 16px; font-weight:600; font-size:16px; cursor:pointer; transition:background 0.2s; color:#111827; text-transform:uppercase; letter-spacing:0.5px; width:100%;}
+    #logoutSection.hidden { display:none !important;}
+    #loginWrapper {
+      position: fixed; inset:0; width:100vw; height:100vh; backdrop-filter:blur(10px); background-color:rgba(10,14,39,0.85);
+      display:flex; justify-content:center; align-items:center; z-index:1000;
+      padding:20px;
     }
-    
-    .top-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
+    #loginWrapper.logged-in { display:none !important;}
+    /* Scrollbar */
+    ::-webkit-scrollbar { width:6px; height:6px;}
+    ::-webkit-scrollbar-track { background:rgba(0,0,0,0.1); border-radius:10px;}
+    ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:10px;}
+    ::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.2);}
+    @media (max-width:900px){
+      .wrap { grid-template-columns:1fr; }
+      .side { flex-direction:row; flex-wrap:wrap; justify-content:space-between; }
+      .side .panel { flex:1 1 48%; }
+      .controls { flex-direction:column; gap:8px; }
+      .top-row { flex-direction:column; gap:8px; align-items:flex-start; }
+      .multiplier { font-size:36px; }
+      canvas { height:220px; }
+      .panel strong { font-size:16px; }
+      .small { font-size:12px; }
     }
-    
-    .multiplier {
-      font-size: 52px;
-      font-weight: 700;
-      color: var(--accent);
-      text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-      letter-spacing: 1px;
-      line-height: 1;
-    }
-    
-    .crash-point {
-      font-size: 14px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-    
-    canvas {
-      background: linear-gradient(180deg, #0a1428, #070e1f);
-      border-radius: 12px;
-      width: 100%;
-      height: 380px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
-    
-    .controls {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
-    }
-    
-    input[type=number] {
-      padding: 12px 16px;
-      border-radius: 8px;
-      border: none;
-      width: 160px;
-      font-size: 16px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid var(--border);
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-    
-    input[type=number]:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
-    }
-    
-    button {
-      padding: 12px 20px;
-      border-radius: 8px;
-      border: none;
-      background: var(--accent);
-      color: #111827;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 16px;
-      transition: all 0.2s;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    button:hover {
-      background: var(--accent-dark);
-      transform: translateY(-1px);
-    }
-    
-    button:active {
-      transform: translateY(0);
-    }
-    
-    .btn-danger {
-      background: var(--red);
-      color: white;
-    }
-    
-    .btn-danger:hover {
-      background: #dc2626;
-    }
-    
-    .side {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    
-    .panel {
-      background: var(--card);
-      padding: 16px;
-      border-radius: 12px;
-      box-shadow: inset 0 0 0 1px var(--border);
-    }
-    
-    .panel strong {
-      font-size: 18px;
-      font-weight: 600;
-      display: block;
-      margin-bottom: 12px;
-      color: var(--text);
-      letter-spacing: 0.5px;
-    }
-    
-    .small {
-      font-size: 14px;
-      color: var(--text-secondary);
-    }
-    
-    .players {
-      max-height: 220px;
-      overflow: auto;
-    }
-    
-    .player {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 6px;
-      border-bottom: 1px solid var(--border);
-      font-size: 14px;
-    }
-    
-    .player:last-child {
-      border-bottom: none;
-    }
-    
-    .status-win {
-      color: var(--green);
-      font-weight: 500;
-    }
-    
-    .status-lose {
-      color: var(--red);
-      font-weight: 500;
-    }
-    
-    .center {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    footer {
-      font-size: 12px;
-      color: var(--muted);
-      text-align: center;
-      margin-top: 12px;
-      opacity: 0.7;
-    }
-    
-    .login {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    
-    .login input {
-      padding: 8px 12px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: rgba(0, 0, 0, 0.3);
-      color: var(--text);
-      font-size: 14px;
-    }
-    
-    .login input::placeholder {
-      color: var(--muted);
-    }
-    
-    .hidden {
-      display: none;
-    }
-    /* Full screen wrapper with blur behind login */
-#loginWrapper {
-  position: fixed;
-  inset: 0; /* shorthand for top:0; right:0; bottom:0; left:0; */
-  width: 100vw;
-  height: 150vh;
-  backdrop-filter: blur(10px);
-  background-color: rgba(10, 14, 39, 0.8); /* semi-transparent dark */
-  
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-/* Hide logout by default */
-#logoutSection.hidden {
-  display: none !important;
-}
-
-/* Login section displayed by default */
-#loginSection {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-/* Login form container styling */
-.login {
-  background: rgba(18, 21, 42, 0.85);
-  padding: 30px 40px;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 320px;
-}
-
-/* Inputs styling */
-.login input {
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.3);
-  color: #f3f4f6;
-  font-size: 16px;
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-
-.login input::placeholder {
-  color: rgba(156, 163, 175, 0.7); /* lighter placeholder */
-}
-
-.login input:focus {
-  border-color: #ffd700;
-}
-
-/* Login button style */
-.login button {
-  background-color: #ffd700;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 16px;
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  color: #111827;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.login button:hover {
-  background-color: #e6c300;
-}
-
-/* Hide logout section initially */
-#logoutSection.hidden {
-  display: none;
-}
-/* Login Wrapper default for login overlay */
-#loginWrapper.login-overlay {
-  position: fixed;
-  inset: 0; /* top:0; right:0; bottom:0; left:0; */
-  width: 100vw;
-  height: 120vh;
-  backdrop-filter: blur(10px);
-  background-color: rgba(10, 14, 39, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-/* Login wrapper state when token exists */
-#loginWrapper.logged-in {
-  position: relative;
-  bottom: 20px;
-  right: 20px;
-  width: auto;
-  height: auto;
-  backdrop-filter: none;
-  background-color: transparent;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  z-index: 1000;
-}
-
-/* Hide logout by default */
-#logoutSection.hidden {
-  display: none !important;
-}
-
-/* Login section default */
-#loginSection {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-/* Logout section default */
-#logoutSection {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-    
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    
-    ::-webkit-scrollbar-track {
-      background: rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-    
-    /* Animation for multiplier */
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-    
-    .pulse {
-      animation: pulse 1s infinite;
-    }
-    
-    /* Glow effect for important elements */
-    .glow {
-      text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
-    }
-    
-    /* Responsive adjustments */
-    @media (max-width: 900px) {
-      .wrap {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width:500px){
+      .multiplier { font-size:28px; }
+      canvas { height:180px; }
+      input[type=number] { width:100%; }
+      .controls button { width:100%; }
+      .login { width:90%; padding:20px; }
     }
   </style>
 </head>
@@ -424,7 +109,6 @@
       <div class="top-row">
         <div>
           <div class="multiplier glow" id="multiplier">1.00x</div>
-          <!-- <div class="crash-point small">Crash point: <span id="crashPoint">—</span></div> -->
         </div>
         <div class="small">
           <div id="balance">Balance: —</div>
@@ -435,34 +119,19 @@
       <canvas id="stage" width="800" height="380"></canvas>
 
       <div class="controls">
-        <div style="display:flex;gap:12px;align-items:center">
+        <div style="display:flex;gap:12px;align-items:center; flex-wrap:wrap">
           <input type="number" id="betInput" placeholder="Bet amount" min="1" />
           <button id="placeBetBtn">Bet</button>
           <button id="cashoutBtn" class="btn-danger" disabled>Cashout</button>
         </div>
-
-       <div id="loginWrapper" style="display: flex; gap:12px; align-items: center; margin-left: auto;">
-  <div id="loginSection" class="login" style="display: flex; gap: 8px;">
-    <input id="loginUser" placeholder="Username" autocomplete="username" />
-    <input id="loginPass" placeholder="Password" type="password" autocomplete="current-password" />
-    <button id="loginBtn" style="padding: 8px 16px;">Login</button>
-  </div>
-  <div id="logoutSection" class="hidden" style="display: flex; gap: 12px; align-items: center;">
-    <span id="loggedInUser" style="font-weight: 500;"></span>
-    <button id="logoutBtn" style="padding: 8px 16px;">Logout</button>
-  </div>
-</div>
-
-
-
       </div>
 
-      <div style="display:flex;justify-content:space-between;gap:16px">
+      <div style="display:flex;justify-content:space-between;gap:16px; flex-wrap:wrap;">
         <div class="small panel" style="flex:1">
           <strong>Round Info</strong>
-          <div id="roundInfo" class="small">No active round</div>
+          <div id="roundInfo" class="small" style="color:#ffd700;">No active round</div>
         </div>
-        <div class="small panel" style="width:220px">
+        <div class="small panel" style="width:220px; flex:1">
           <strong>Recent Results</strong>
           <div id="results" style="margin-top:8px;display:flex;flex-direction:column;gap:4px;"></div>
         </div>
@@ -480,164 +149,215 @@
         <strong>Game Logs</strong>
         <div id="logs" style="max-height:220px;overflow:auto;font-size:13px;color:var(--text-secondary);display:flex;flex-direction:column;gap:4px;"></div>
       </div>
+
+      <div id="logoutSection"  style="display:flex; gap:12px; align-items:center;">
+        <button id="logoutBtn">Logout</button>
+      </div>
     </div>
   </div>
 
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script>
-    const SERVER = (location.hostname === 'localhost' || location.protocol === 'file:') ? 'http://localhost:3000' : location.origin;
+  <!-- Login Modal -->
+  <div id="loginWrapper">
+    <div id="loginSection" class="login">
+      <input id="loginUser" placeholder="Username" autocomplete="username" />
+      <input id="loginPass" placeholder="Password" type="password" autocomplete="current-password" />
+      <button id="loginBtn">Login</button>
+    </div>
+  </div>
 
-    const multiplierEl = document.getElementById('multiplier');
-    const crashPointEl = document.getElementById('crashPoint');
-    const balanceEl = document.getElementById('balance');
-    const countdownEl = document.getElementById('countdown');
-    const betInput = document.getElementById('betInput');
-    const placeBetBtn = document.getElementById('placeBetBtn');
-    const cashoutBtn = document.getElementById('cashoutBtn');
-    const playersEl = document.getElementById('players');
-    const logsEl = document.getElementById('logs');
-    const resultsEl = document.getElementById('results');
 
-    const loginUser = document.getElementById('loginUser');
-    const loginPass = document.getElementById('loginPass');
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const loginSection = document.getElementById('loginSection');
-    const logoutSection = document.getElementById('logoutSection');
-    const loggedInUser = document.getElementById('loggedInUser');
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded', () => {
 
-    const loginWrapper = document.getElementById('loginWrapper');
+  const SERVER = (location.hostname==='localhost'||location.protocol==='file:') ? 'http://localhost:3000' : location.origin;
 
-    
+  const multiplierEl = document.getElementById('multiplier');
+  const crashPointEl = document.getElementById('crashPoint');
+  const balanceEl = document.getElementById('balance');
+  const countdownEl = document.getElementById('countdown');
+  const betInput = document.getElementById('betInput');
+  const placeBetBtn = document.getElementById('placeBetBtn');
+  const cashoutBtn = document.getElementById('cashoutBtn');
+  const playersEl = document.getElementById('players');
+  const logsEl = document.getElementById('logs');
+  const resultsEl = document.getElementById('results');
+  const loginUser = document.getElementById('loginUser');
+  const loginPass = document.getElementById('loginPass');
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const loginWrapper = document.getElementById('loginWrapper');
+  const loginSection = document.getElementById('loginSection');
+  const logoutSection = document.getElementById('logoutSection');
+  const loggedInUser = document.getElementById('loggedInUser');
+  const roundInfo = document.getElementById('roundInfo');
 
-    const canvas = document.getElementById('stage');
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width; const H = canvas.height;
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d');
+  let W = canvas.width;
+  let H = canvas.height;
 
-    let socket = null;
-    let token = localStorage.getItem('aviatorToken') || null;
-    let myBalance = 0;
-    let myBet = 0;
-    let hasCashed = false;
-    let gameInProgress = false;
-    let currentMultiplier = 1.0;
-    let crashPoint = null;
-    let planeX = 60, planeY = H - 30;
+  // Plane image
+  let planeImg = new Image();
+  planeImg.src = 'https://aviator-game-kqzb.onrender.com/image/plane.svg'; 
+  planeImg.onload = () => requestAnimationFrame(animate);
 
-    function log(msg){ const d = document.createElement('div'); d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`; logsEl.prepend(d); }
+  let socket = null;
+  let token = localStorage.getItem('aviatorToken') || null;
+  let myBalance = 0, myBet = 0, hasCashed = false, gameInProgress = false, currentMultiplier = 1.0, crashPoint = null;
+  let planeX = 60, planeY = H-30;
 
-    function updatePlayers(list){ playersEl.innerHTML = ''; list.forEach(p => {
-      const el = document.createElement('div'); el.className = 'player';
+  // --- Utility Functions ---
+  function log(msg){
+    if(!logsEl) return;
+    const d = document.createElement('div');
+    d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    logsEl.prepend(d);
+  }
+
+  function updatePlayers(list){
+    if(!playersEl) return;
+    playersEl.innerHTML = '';
+    list.forEach(p=>{
+      const el = document.createElement('div');
+      el.className = 'player';
       const betText = p.betAmount ? Number(p.betAmount).toFixed(2) : '';
       const status = p.cashedOut ? `<span class="status-win">✓ ${Number(p.cashoutMultiplier||0).toFixed(2)}x</span>` : '';
       el.innerHTML = `<div>${p.username}</div><div>${betText} ${status}</div>`;
       playersEl.appendChild(el);
-    }); }
+    });
+  }
 
-    function addResult(text){ const d = document.createElement('div'); d.textContent = text; resultsEl.prepend(d); if(resultsEl.children.length>10) resultsEl.removeChild(resultsEl.lastChild); }
+  function addResult(text){
+    if(!resultsEl) return;
+    const d = document.createElement('div');
+    d.textContent = text;
+    resultsEl.prepend(d);
+    if(resultsEl.children.length>10) resultsEl.removeChild(resultsEl.lastChild);
+  }
 
-    function drawStage(){
-      ctx.clearRect(0,0,W,H);
-      ctx.fillStyle = '#0a1020'; ctx.fillRect(0,0,W,H);
+  // --- Draw Stage ---
+  function drawStage(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#0a1020';
+    ctx.fillRect(0,0,W,H);
 
-      const maxShow = Math.max(crashPoint || 5, currentMultiplier, 3);
-      const t = (currentMultiplier - 1) / (maxShow - 1);
-      const y = H - 30 - Math.max(0, Math.min(1,t)) * (H - 80);
-      planeX = 60 + (currentMultiplier - 1) * 40;
-      planeY = y;
+    const maxShow = Math.max(crashPoint||5, currentMultiplier, 3);
+    ctx.beginPath();
+    ctx.moveTo(40,H-30);
 
-      // Draw graph line with gradient
-      const gradient = ctx.createLinearGradient(40, H-30, 40 + (maxShow-1)*40, H - 30 - (H - 80));
-      gradient.addColorStop(0, 'rgba(255,215,0,0.3)');
-      gradient.addColorStop(1, 'rgba(255,0,0,0.3)');
-      
-      ctx.beginPath(); ctx.moveTo(40,H-30);
-      for(let m=1;m<=Math.max(currentMultiplier, (crashPoint||5)); m+=0.1){
-        let tt = (m - 1) / (maxShow - 1);
-        let yy = H - 30 - Math.max(0, Math.min(1,tt)) * (H - 80);
-        ctx.lineTo(40 + (m-1)*40, yy);
-      }
-      ctx.strokeStyle = gradient;
-      ctx.lineWidth=3;
-      ctx.stroke();
-
-      // Draw plane with more details
-      ctx.save();
-      ctx.translate(planeX, planeY);
-      ctx.rotate(Math.atan2(planeY - (H - 30 - (H - 80)), 40) * 0.3);
-      
-      // Plane body
-      ctx.fillStyle = '#ffd700';
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 12, 8, 0, 0, Math.PI*2);
-      ctx.fill();
-      
-      // Cockpit
-      ctx.fillStyle = 'rgba(0,0,0,0.3)';
-      ctx.fillRect(-6, -8, 12, 4);
-      
-      // Wings
-      ctx.fillStyle = 'rgba(255,215,0,0.8)';
-      ctx.fillRect(-16, 2, 32, 3);
-      ctx.fillRect(-8, -5, 16, 3);
-      
-      // Tail
-      ctx.fillRect(8, -2, 6, 3);
-      
-      ctx.restore();
-
-      // Current multiplier display
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 20px Kanit';
-      ctx.textAlign = 'right';
-      ctx.fillText(currentMultiplier.toFixed(2) + 'x', W - 20, 30);
-      ctx.textAlign = 'left';
+    const curvePoints = [];
+    for(let m=1; m <= Math.max(currentMultiplier, crashPoint||5); m+=0.1){
+      let t = (m-1)/(maxShow-1);
+      let y = H-30 - Math.max(0, Math.min(1,t))*(H-80);
+      let x = 40 + t*(W-80);
+      ctx.lineTo(x, y);
+      curvePoints.push({x,y,multiplier:m});
     }
 
-    function animate(){ drawStage(); requestAnimationFrame(animate); }
-    requestAnimationFrame(animate);
+    // Red glowing gradient
+    const gradient = ctx.createLinearGradient(40,H-30,40+(maxShow-1)*(W-80),H-30-(H-80));
+    gradient.addColorStop(0,'rgba(255,0,0,0.3)');
+    gradient.addColorStop(1,'rgba(200,0,0,0.6)');
+    ctx.strokeStyle = gradient;
+    ctx.lineWidth = 4;
+    ctx.shadowColor = 'rgba(255,0,0,0.7)';
+    ctx.shadowBlur = 10;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
 
+    let planePoint = curvePoints[curvePoints.findIndex(p => p.multiplier >= currentMultiplier) || curvePoints.length-1];
+    if(planePoint){
+      planeX = planePoint.x;
+      planeY = planePoint.y;
+    }
+
+    if(planeImg.complete && planeImg.naturalWidth>0){
+      ctx.drawImage(planeImg, planeX - 48, planeY - 48, 96, 96);
+    }
+
+    if(multiplierEl){
+      ctx.fillStyle='#ffffff';
+      ctx.font='bold 20px Kanit';
+      ctx.textAlign='right';
+      ctx.fillText(currentMultiplier.toFixed(2)+'x', W-20, 30);
+      ctx.textAlign='left';
+    }
+  }
+
+  function animate(){ drawStage(); requestAnimationFrame(animate); }
+
+  // --- Login/Logout ---
+  function showLoggedIn(username){
+    if(loginWrapper) loginWrapper.classList.add('logged-in');
+    if(loginWrapper) loginWrapper.classList.remove('login-overlay');
+    if(loginSection) loginSection.style.display='none';
+    if(logoutSection) logoutSection.style.display='flex';
+    if(loggedInUser) loggedInUser.textContent = username;
+  }
+
+  function showLoginOverlay(){
+    if(loginWrapper) loginWrapper.classList.add('login-overlay');
+    if(loginWrapper) loginWrapper.classList.remove('logged-in');
+    if(loginSection) loginSection.style.display='flex';
+    if(logoutSection) logoutSection.style.display='none';
+  }
+
+  if(loginBtn){
     loginBtn.addEventListener('click', async ()=>{
-      const u = loginUser.value.trim(); const p = loginPass.value.trim();
-      if(!u||!p){ alert('enter user/pass'); return; }
+      const u = loginUser?.value.trim();
+      const p = loginPass?.value.trim();
+      if(!u || !p){ alert('Enter username/password'); return; }
       try{
-        const res = await fetch(SERVER + '/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+        const res = await fetch(SERVER+'/login',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({username:u,password:p})
+        });
         const data = await res.json();
         if(data.token){
           token = data.token;
           localStorage.setItem('aviatorToken', token);
           myBalance = Number(data.balance||0);
-          balanceEl.textContent = 'Balance: ' + myBalance.toFixed(2);
-          loggedInUser.textContent = u;
-          loginSection.classList.add('hidden');
-          logoutSection.classList.remove('hidden');
+          if(balanceEl) balanceEl.textContent='Balance: '+myBalance.toFixed(2);
+          showLoggedIn(u);
           connectSocket();
           log('Logged in as '+u);
         } else {
-          alert('login failed: '+(data.error||'unknown'));
+          alert('Login failed: '+(data.error||'unknown'));
         }
-      }catch(e){ alert('login error '+e.message); }
+      } catch(e){
+        alert('Login error '+e.message);
+      }
     });
+  }
 
+  if(logoutBtn){
     logoutBtn.addEventListener('click', ()=>{
-      localStorage.removeItem('aviatorToken');
-      token = null;
-      socket?.disconnect();
-      socket = null;
-      loginSection.classList.remove('hidden');
-      logoutSection.classList.add('hidden');
-      balanceEl.textContent = 'Balance: —';
+      localStorage.removeItem('aviatorToken'); token=null; socket?.disconnect(); socket=null;
+      if(loginWrapper) loginWrapper.classList.remove('logged-in');
+      if(loginWrapper) loginWrapper.classList.add('login-overlay');
+      if(balanceEl) balanceEl.textContent='Balance: —';
       log('Logged out');
+      showLoginOverlay();
     });
+  }
 
+  // --- Bet & Cashout ---
+  if(placeBetBtn){
     placeBetBtn.addEventListener('click', ()=>{
-      const bet = Number(betInput.value);
+      const bet = Number(betInput?.value);
       if(!socket){ alert('Not connected'); return; }
-      if(!bet || bet <= 0){ alert('Enter bet'); return; }
-      placeBetBtn.disabled = true;
+      if(!bet || bet<=0){ alert('Enter bet'); return; }
       socket.emit('placeBet', bet);
+      myBet = bet;
+      hasCashed = false;
+      placeBetBtn.disabled = true;
+      cashoutBtn.disabled = false;
     });
+  }
 
+  if(cashoutBtn){
     cashoutBtn.addEventListener('click', ()=>{
       if(!socket){ alert('Not connected'); return; }
       if(!gameInProgress){ alert('No active round'); return; }
@@ -646,139 +366,62 @@
       hasCashed = true;
       cashoutBtn.disabled = true;
     });
+  }
 
-    function connectSocket(){
-      if(!token){ return; }
-      socket = io(SERVER, { auth:{ token } });
+  // --- Socket Connection ---
+  function connectSocket(){
+    if(!token) return;
+    socket = io(SERVER,{ auth:{token} });
 
-      socket.on('connect', ()=>{ log('socket connected'); });
-      socket.on('balanceUpdate', b=>{ myBalance = Number(b); balanceEl.textContent = 'Balance: ' + myBalance.toFixed(2); });
-      socket.on('betPlaced', amt=>{ myBet = Number(amt); log('Bet placed: '+myBet.toFixed(2)); });
-      socket.on('betError', msg=>{ alert('Bet error: '+msg); placeBetBtn.disabled = false; });
-      socket.on('currentBetsCount', c=>{ document.getElementById('roundInfo').textContent = c + ' players in round'; });
-      socket.on('countdownStarted', s=>{ countdownEl.textContent = 'Countdown: ' + s + 's'; placeBetBtn.disabled = false; cashoutBtn.disabled = true; gameInProgress = false; hasCashed = false; });
-      socket.on('crashPoint', p=>{ crashPoint = Number(p); crashPointEl.textContent = crashPoint.toFixed(2) + 'x'; log('Crash point: '+crashPoint); });
-      socket.on('countdownTick', s=>{ countdownEl.textContent = 'Countdown: ' + s + 's'; });
-      socket.on('countdownEnded', ()=>{ countdownEl.textContent = 'In play'; hasCashed = false; gameInProgress = true; if(myBet > 0){ cashoutBtn.disabled = false; } else { cashoutBtn.disabled = true; } placeBetBtn.disabled = true; });
-      socket.on('multiplierUpdate', m=>{ currentMultiplier = Number(m); multiplierEl.textContent = currentMultiplier.toFixed(2)+'x'; if(currentMultiplier > 1.5) { multiplierEl.classList.add('pulse'); } else { multiplierEl.classList.remove('pulse'); } });
-      socket.on('playerCashedOut', d=>{ const mult = Number(d.cashoutMultiplier ?? d.multiplier ?? 0); log(`${d.username} cashed out at ${mult.toFixed(2)}x`); });
-      socket.on('gameCrashed', m=>{ const crashM = Number(m); log('Game crashed at ' + crashM.toFixed(2) + 'x'); addResult('Crash at ' + crashM.toFixed(2) + 'x'); cashoutBtn.disabled = true; gameInProgress = false; placeBetBtn.disabled = false; myBet = 0; hasCashed = false; });
-      socket.on('roundResults', r=>{ if(Array.isArray(r.winners)){ r.winners.forEach(w=>{ addResult(`WIN: ${w.username} got ${Number(w.payout).toFixed(2)} (bet ${Number(w.betAmount).toFixed(2)} @ ${Number(w.cashoutMultiplier).toFixed(2)}x)`); }); } if(Array.isArray(r.losers)){ r.losers.forEach(l=> addResult(`LOSE: ${l.username} lost ${Number(l.betAmount).toFixed(2)}`)); } cashoutBtn.disabled = true; placeBetBtn.disabled = false; myBet = 0; hasCashed = false; gameInProgress = false; });
-      socket.on('playersList', list => updatePlayers(list));
-      socket.on('disconnect', ()=>{ log('socket disconnected'); });
-    }
+    socket.on('connect', ()=>{ log('Socket connected'); });
 
-    // Auto-login on page load
-    window.addEventListener('DOMContentLoaded', ()=>{
-      if(token){
-        log('Found saved session, reconnecting...');
-        loginSection.classList.add('hidden');
-        logoutSection.classList.remove('hidden');
-        loggedInUser.textContent = 'Player';
-        connectSocket();
+    // --- Restore player state after refresh ---
+    socket.on('initPlayerState', state => {
+      myBet = state.myBet || 0;
+      hasCashed = state.hasCashed || false;
+      gameInProgress = state.gameInProgress || false;
+      currentMultiplier = state.currentMultiplier || 1.0;
+      crashPoint = state.crashPoint || null;
+      if(balanceEl) balanceEl.textContent='Balance: '+Number(state.balance||0).toFixed(2);
+      if(myBet>0 && !hasCashed && gameInProgress){
+        cashoutBtn.disabled = false;
+        placeBetBtn.disabled = true;
+      }
+      if(state.logs && Array.isArray(state.logs)){
+        logsEl.innerHTML = '';
+        state.logs.forEach(l => log(l));
       }
     });
-  </script>
 
-  <script>
-  function showLoginOverlay() {
-  loginWrapper.classList.add('login-overlay');
-  loginWrapper.classList.remove('logged-in');
-  loginSection.style.display = 'flex';
-  logoutSection.style.display = 'none';
-}
-
-function showLoggedIn(username) {
-  loginWrapper.classList.remove('login-overlay');
-  loginWrapper.classList.add('logged-in');
-  loginSection.style.display = 'none';
-  logoutSection.style.display = 'flex';
-  loggedInUser.textContent = username;
-}
-
-// On page load
-window.addEventListener('load', () => {
-  if (token) {
-    // Decode token or use stored username
-    const username = 'Player'; // replace with decoded username if you have
-    showLoggedIn(username);
-  } else {
-    showLoginOverlay();
-  }
-});
-
-// Login button
-loginBtn.addEventListener('click', () => {
-  const username = loginUser.value.trim();
-  const password = loginPass.value.trim();
-
-  if (!username || !password) {
-    alert('Enter username and password.');
-    return;
+    socket.on('balanceUpdate', b => { if(balanceEl) balanceEl.textContent='Balance: '+Number(b).toFixed(2); });
+    socket.on('betPlaced', amt => { myBet = Number(amt); log('Bet placed: '+myBet.toFixed(2)); cashoutBtn.disabled = false; placeBetBtn.disabled = true; });
+    socket.on('betError', msg => { alert('Bet error: '+msg); placeBetBtn.disabled = false; });
+    socket.on('currentBetsCount', c => { if(roundInfo) roundInfo.textContent=c+' players in round'; });
+    socket.on('countdownStarted', s => { if(countdownEl) countdownEl.textContent='Countdown: '+s+'s'; placeBetBtn.disabled=false; cashoutBtn.disabled=true; gameInProgress=false; hasCashed=false; });
+    socket.on('countdownTick', s => { if(countdownEl) countdownEl.textContent='Countdown: '+s+'s'; });
+    socket.on('countdownEnded', ()=>{ if(countdownEl) countdownEl.textContent='In play'; gameInProgress=true; if(myBet>0 && !hasCashed) cashoutBtn.disabled=false; placeBetBtn.disabled=true; });
+    socket.on('multiplierUpdate', m => { currentMultiplier = Number(m); if(multiplierEl) multiplierEl.textContent=currentMultiplier.toFixed(2)+'x'; });
+    socket.on('playerCashedOut', d => { const mult=Number(d.cashoutMultiplier??d.multiplier??0); log(`${d.username} cashed out at ${mult.toFixed(2)}x`); });
+    socket.on('gameCrashed', m => { const crashM=Number(m); log('Game crashed at '+crashM.toFixed(2)+'x'); addResult('Crash at '+crashM.toFixed(2)+'x'); cashoutBtn.disabled=true; gameInProgress=false; placeBetBtn.disabled=false; myBet=0; hasCashed=false; });
+    socket.on('roundResults', r => {
+      if(Array.isArray(r.winners)) r.winners.forEach(w => addResult(`WIN: ${w.username} got ${Number(w.payout).toFixed(2)} (bet ${Number(w.betAmount).toFixed(2)} @ ${Number(w.cashoutMultiplier).toFixed(2)}x)`));
+      if(Array.isArray(r.losers)) r.losers.forEach(l => addResult(`LOSE: ${l.username} lost ${Number(l.betAmount).toFixed(2)}`));
+      cashoutBtn.disabled=true; placeBetBtn.disabled=false; myBet=0; hasCashed=false; gameInProgress=false;
+    });
+    socket.on('playersList', list => updatePlayers(list));
+    socket.on('disconnect', ()=>{ log('Socket disconnected'); });
   }
 
-  fetch(`${SERVER}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.token) {
-        localStorage.setItem('aviatorToken', data.token);
-        showLoggedIn(username);
-        connectSocket(data.token);
-      } else {
-        alert('Login failed: ' + (data.error || 'Invalid credentials'));
-      }
-    })
-    .catch(err => alert('Login error: ' + err.message));
-});
+  // --- Auto reconnect if token exists ---
+  if(token){
+    log('Found saved session, reconnecting...');
+    showLoggedIn('Player');
+    connectSocket();
+  }
 
-// Logout button
-logoutBtn.addEventListener('click', () => {
-  localStorage.removeItem('aviatorToken');
-  location.reload();
 });
-
 </script>
 
-<script>
-  window.addEventListener('beforeunload', function (e) {
-    if (localStorage.getItem('aviatorToken')) {
-      // Modern browsers ignore custom messages, but showing prompt anyway
-      const confirmationMessage = 'Page refresh or navigation is disabled while aviatorToken is set. Are you sure?';
-      e.preventDefault();
-      e.returnValue = confirmationMessage; // For some browsers
-      return confirmationMessage;          // For others
-    }
-    // If no token, no prompt
-  });
-
-  // Your existing disable keyboard and contextmenu code here
-  function disableRefresh(event) {
-    if (localStorage.getItem('aviatorToken')) {
-      if (event.key === 'F5' || event.keyCode === 116) {
-        event.preventDefault();
-        alert('Page refresh is disabled while aviatorToken is set.');
-      }
-      if ((event.ctrlKey || event.metaKey) && (event.key === 'r' || event.key === 'R' || event.keyCode === 82)) {
-        event.preventDefault();
-        alert('Page refresh is disabled while aviatorToken is set.');
-      }
-    }
-  }
-
-  function disableContextMenu(event) {
-    if (localStorage.getItem('aviatorToken')) {
-      event.preventDefault();
-      alert('Right-click refresh is disabled while aviatorToken is set.');
-    }
-  }
-
-  window.addEventListener('keydown', disableRefresh);
-  window.addEventListener('contextmenu', disableContextMenu);
-</script>
 
 </body>
 </html>
