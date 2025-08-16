@@ -87,7 +87,7 @@
     ::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.2);}
     @media (max-width:900px){
       .wrap { grid-template-columns:1fr; }
-      .side { flex-direction:row; flex-wrap:wrap; justify-content:space-between; }
+      .side { flex-direction:column; gap:16px}
       .side .panel { flex:1 1 48%; }
       .controls { flex-direction:column; gap:8px; }
       .top-row { flex-direction:column; gap:8px; align-items:flex-start; }
@@ -133,7 +133,7 @@
       </div>
 
       <div style="display:flex;justify-content:space-between;gap:16px; flex-wrap:wrap;">
-        <div class="small panel" style="flex:1">
+        <div class="small panel" style="width:220px;height: 100px;overflow-y: scroll; flex:1">
           <strong>Round Info</strong>
           <div id="roundInfo" class="small" style="color:#ffd700;">No active round</div>
         </div>
@@ -146,19 +146,20 @@
     </div>
 
     <div class="side">
-      <div class="panel" style="height: 100px;overflow-y: scroll;">
+      <!-- <div class="panel" style="height: 100px;overflow-y: scroll;">
         <strong>Active Players</strong>
         <div id="players" class="players"></div>
-      </div>
+      </div> -->
 
-      <div class="panel" style="height: 100px;overflow-y: scroll;">
+      <!-- <div class="panel" style="height: 100px;overflow-y: scroll;">
         <strong>Game Logs</strong>
         <div id="logs" style="max-height:220px;overflow:auto;font-size:13px;color:var(--text-secondary);display:flex;flex-direction:column;gap:4px;"></div>
-      </div>
+      </div> -->
 
       <div id="logoutSection"  style="display:flex; gap:12px; align-items:center;">
         <button id="logoutBtn">Logout</button>
       </div>
+      
     </div>
   </div>
 
@@ -289,8 +290,12 @@ window.addEventListener('DOMContentLoaded', () => {
       planeY = planePoint.y;
     }
 
+    const newSize = 192;
+
     if(planeImg.complete && planeImg.naturalWidth>0){
-      ctx.drawImage(planeImg, planeX - 48, planeY - 48, 96, 96);
+     
+ctx.drawImage(planeImg, planeX - newSize/2, planeY - newSize/2, newSize, newSize);
+
     }
 
     if(multiplierEl){
